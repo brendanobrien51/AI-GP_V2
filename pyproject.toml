@@ -49,7 +49,7 @@ aigp-export = "scripts.export:main"
 aigp-deploy = "scripts.deploy:main"
 
 [tool.setuptools.packages.find]
-include = ["aigp*"]
+include = ["aigp*", "scripts*"]
 
 [tool.ruff]
 line-length = 120

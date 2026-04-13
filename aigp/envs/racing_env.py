@@ -152,8 +152,14 @@ class RacingEnv(DirectRLEnv):
         ], dim=-1)  # (N, 13)
 
         # Critic observation: 31D (privileged)
-        # Include up to 4 future gate positions in world frame
-        future_gate_flat = self._gate_positions[:, :4].reshape(self.num_envs, -1)  # (N, 12)
+        # Include up to 4 upcoming gate positions in world frame (starting from current gate)
+        future_gates = torch.zeros(self.num_envs, 4, 3, device=self.device)
+        for i in range(4):
+            idx = (self._current_gate_idx + i).clamp(max=self.cfg.max_num_gates - 1)
+            future_gates[:, i] = self._gate_positions[
+                torch.arange(self.num_envs, device=self.device), idx
+            ]
+        future_gate_flat = future_gates.reshape(self.num_envs, -1)  # (N, 12)
         critic_obs = torch.cat([
             actor_obs,             # 13
             pos,                   # 3

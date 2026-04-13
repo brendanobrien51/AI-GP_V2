@@ -13,6 +13,7 @@ import signal
 import time
 
 import numpy as np
+from scipy.spatial.transform import Rotation
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -54,7 +55,12 @@ def main() -> None:
         model_path=args.model,
         execution_provider=inference_cfg.get("execution_provider", "CUDAExecutionProvider"),
     )
-    safety = SafetyMonitor(**safety_cfg)
+    # Filter keys that SafetyMonitor.__init__ does not accept
+    _safety_init_keys = {
+        "max_tracking_loss_s", "nan_action_limit", "geofence_radius_m",
+        "max_altitude_m", "min_altitude_m", "max_attitude_deg",
+    }
+    safety = SafetyMonitor(**{k: v for k, v in safety_cfg.items() if k in _safety_init_keys})
     bridge = PX4Bridge(
         setpoint_rate_hz=px4_cfg.get("setpoint_rate_hz", 100),
     )
@@ -71,6 +77,9 @@ def main() -> None:
 
     control_dt = 1.0 / inference_cfg.get("inference_frequency_hz", 100)
     prev_action = np.zeros(4, dtype=np.float32)
+
+    # Gate positions from race config (populated by race manager or set manually)
+    next_gate_pos = None  # Will be set when gate detection provides a target
 
     while _running:
         t_start = time.perf_counter()
@@ -93,12 +102,40 @@ def main() -> None:
                 bridge.disarm()
             break
 
-        # Build observation
+        # Update estimator from PX4 odometry
+        if odom is not None and not estimator.initialized:
+            estimator.initialize(
+                position=odom["position"],
+                velocity=odom["velocity"],
+                quaternion=odom["quaternion"],
+            )
+
+        # Build observation matching training: [ang_vel_body, gravity_body, rel_gate_body, prev_action]
         state = estimator.get_state()
+        q = state.quaternion  # wxyz
+        rot = Rotation.from_quat([q[1], q[2], q[3], q[0]])  # scipy uses xyzw
+
+        # Angular velocity in body frame from PX4 odometry
+        if odom is not None and "angular_velocity" in odom:
+            ang_vel_body = odom["angular_velocity"].astype(np.float32)
+        else:
+            ang_vel_body = np.zeros(3, dtype=np.float32)
+
+        # Gravity in body frame: rotate world gravity [0, 0, 9.81] (NED) into body
+        gravity_world = np.array([0.0, 0.0, 9.81])
+        gravity_body = rot.inv().apply(gravity_world).astype(np.float32)
+
+        # Relative gate position in body frame
+        # Use detector + PnP when available, else use known gate position
+        rel_gate_body = np.zeros(3, dtype=np.float32)
+        if next_gate_pos is not None:
+            rel_world = next_gate_pos - state.position
+            rel_gate_body = rot.inv().apply(rel_world).astype(np.float32)
+
         obs = np.concatenate([
-            state.velocity,
-            np.zeros(3),  # gravity body placeholder
-            np.zeros(3),  # relative gate placeholder
+            ang_vel_body,
+            gravity_body,
+            rel_gate_body,
             prev_action,
         ]).astype(np.float32)
 

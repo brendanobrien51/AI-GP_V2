@@ -145,9 +145,9 @@ class PX4Bridge:
         msg.timestamp = int(time.time() * 1e6)
 
         # Body rates
-        msg.roll_body = 0.0   # not used in rate mode
-        msg.pitch_body = 0.0
-        msg.yaw_body = 0.0
+        msg.roll_body = roll_rate
+        msg.pitch_body = pitch_rate
+        msg.yaw_body = yaw_rate
 
         # Quaternion setpoint (identity — PX4 uses body rates when available)
         msg.q_d = [1.0, 0.0, 0.0, 0.0]
