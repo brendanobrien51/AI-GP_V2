@@ -1,0 +1,29 @@
+============================================================
+  Quadrotor USD Validation: C:\Users\brend\OneDrive\Desktop\AI-GP_V2\aigp\assets\usd\quadrotor.usd
+============================================================
+  [PASS] Default prim: /quadrotor
+  [PASS] ArticulationRootAPI on /quadrotor
+  [PASS] RigidBodyAPI on /quadrotor/body
+  [PASS] Body mass: 2.5 kg
+  [PASS] Body geometry is Cube
+  [PASS] RigidBodyAPI on /quadrotor/body/rotor_0
+  [PASS] RevoluteJoint at /quadrotor/body/rotor_0/rotor_0_joint
+  [PASS] DriveAPI on /quadrotor/body/rotor_0/rotor_0_joint
+  [PASS] Cylinder at /quadrotor/body/rotor_0/rotor_geom
+  [PASS] RigidBodyAPI on /quadrotor/body/rotor_1
+  [PASS] RevoluteJoint at /quadrotor/body/rotor_1/rotor_1_joint
+  [PASS] DriveAPI on /quadrotor/body/rotor_1/rotor_1_joint
+  [PASS] Cylinder at /quadrotor/body/rotor_1/rotor_geom
+  [PASS] RigidBodyAPI on /quadrotor/body/rotor_2
+  [PASS] RevoluteJoint at /quadrotor/body/rotor_2/rotor_2_joint
+  [PASS] DriveAPI on /quadrotor/body/rotor_2/rotor_2_joint
+  [PASS] Cylinder at /quadrotor/body/rotor_2/rotor_geom
+  [PASS] RigidBodyAPI on /quadrotor/body/rotor_3
+  [PASS] RevoluteJoint at /quadrotor/body/rotor_3/rotor_3_joint
+  [PASS] DriveAPI on /quadrotor/body/rotor_3/rotor_3_joint
+  [PASS] Cylinder at /quadrotor/body/rotor_3/rotor_geom
+  [PASS] Up axis: Z
+  [PASS] Meters per unit: 1.0
+============================================================
+  23 passed, 0 failed
+============================================================

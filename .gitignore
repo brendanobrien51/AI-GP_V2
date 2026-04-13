@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Isaac Sim / Lab
+_isaac_sim/
+*.usd
+*.usda
+*.usdc
+!aigp/assets/usd/.gitkeep
+
+# Training outputs
+logs/
+runs/
+checkpoints/
+wandb/
+outputs/
+*.onnx
+*.pt
+*.pth
+*.zip
+
+# Data
+datasets/
+*.npy
+*.npz
+*.csv
+*.json
+!config/*.yaml
+!config/*.json
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secrets
+.env
+*.key
+credentials.*

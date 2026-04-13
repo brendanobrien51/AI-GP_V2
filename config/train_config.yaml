@@ -1,0 +1,81 @@
+# ============================================================
+# AI-GP V2 — RL Training Configuration
+# SKRL PPO on Isaac Lab | RTX 4080 (12GB VRAM)
+# ============================================================
+
+# --- Environment ---
+env:
+  num_envs: 512                   # Parallel environments
+  episode_length_steps: 500       # Max steps per episode (~10s at 50Hz sim)
+  sim_dt: 0.02                    # Physics step (50Hz)
+  decimation: 2                   # Policy runs every 2 sim steps (25Hz)
+
+# --- Camera (TiledCamera) ---
+camera:
+  width: 80                       # Downsampled training resolution
+  height: 80
+  channels: 3                     # RGB
+
+# --- Observations ---
+observations:
+  actor_vector_dim: 13            # ang_vel(3) + gravity_body(3) + rel_gate(3) + prev_action(4)
+  critic_extra_dim: 18            # position(3) + velocity(3) + all_gate_poses(4*3)
+
+# --- Actions ---
+actions:
+  dim: 4                          # [thrust, roll_rate, pitch_rate, yaw_rate]
+  thrust_range: [0.0, 19.62]      # [0, 2g] m/s^2
+  body_rate_range: [-6.0, 6.0]    # rad/s
+
+# --- Rewards ---
+rewards:
+  gate_pass_bonus: 10.0
+  course_completion_bonus: 50.0
+  collision_penalty: -5.0
+  time_penalty_per_step: -0.002
+  smoothness_scale: -0.01         # Multiplied by ||action_delta||
+  progress_scale: 1.0             # Distance-to-gate reduction reward
+
+# --- PPO Hyperparameters ---
+ppo:
+  learning_rate: 3.0e-4
+  clip_ratio: 0.2
+  entropy_loss_scale: 0.01
+  value_loss_scale: 1.0
+  mini_batches: 4
+  learning_epochs: 5
+  discount_factor: 0.99
+  gae_lambda: 0.95
+  max_grad_norm: 1.0
+  rollout_steps: 24               # Steps per rollout before update
+
+# --- Training Schedule ---
+training:
+  total_timesteps: 50_000_000     # 50M total steps
+  checkpoint_interval: 100        # Save every N iterations
+  eval_interval: 50               # Evaluate every N iterations
+  log_interval: 10
+  seed: 42
+  headless: true                  # No GUI rendering during training
+
+# --- Curriculum ---
+curriculum:
+  initial_gates: 3                # Start with 3 gates
+  max_gates: 8                    # Scale up to 8
+  promotion_threshold: 0.80       # >80% gate pass rate to add gate
+  promotion_window: 50            # Evaluate over N episodes
+
+# --- Domain Randomization ---
+domain_randomization:
+  motor_thrust_range: [0.85, 1.15]
+  motor_time_constant_range: [0.01, 0.04]
+  mass_range: [2.3, 2.7]
+  com_offset_range: [-0.01, 0.01]   # meters
+  drag_coeff_range: [0.8, 1.2]      # multiplier
+  imu_accel_noise_range: [0.03, 0.08]
+  imu_gyro_noise_range: [0.005, 0.02]
+  camera_latency_range: [0, 30]      # ms
+  image_brightness_range: [0.7, 1.3]
+  gate_position_jitter_range: [-0.3, 0.3]
+  wind_gust_range: [0.0, 3.0]        # m/s
+  action_delay_range: [0, 2]          # steps
