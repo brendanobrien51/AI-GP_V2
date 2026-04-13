@@ -1,0 +1,45 @@
+# ============================================================
+# AI-GP V2 — Deployment Configuration
+# Onboard ~100 TOPS Compute Module + PX4
+# ============================================================
+
+# --- Policy Inference ---
+inference:
+  model_path: "checkpoints/policy.onnx"
+  execution_provider: "CUDAExecutionProvider"  # or TensorrtExecutionProvider
+  inference_frequency_hz: 100
+  warmup_iterations: 10
+
+# --- Camera Pipeline ---
+camera:
+  input_resolution: [4000, 3000]    # 12MP raw
+  policy_resolution: [80, 80]       # Downsampled for CNN
+  detector_resolution: [640, 480]   # For YOLOv8 gate detection
+  undistort: true
+  camera_matrix: null               # Set after calibration
+  dist_coeffs: null                 # Set after calibration
+
+# --- PX4 Bridge ---
+px4:
+  transport: "micro_xrce_dds"       # or "mavlink"
+  setpoint_rate_hz: 100
+  odom_subscribe_rate_hz: 250
+  armed_timeout_s: 5.0
+  offboard_mode: "attitude"         # attitude | velocity
+
+# --- State Estimation ---
+state_estimation:
+  use_ekf: true
+  ekf_predict_rate_hz: 250          # IMU-driven prediction
+  ekf_update_rate_hz: 30            # Vision-driven correction
+  pnp_min_confidence: 0.30
+  max_pnp_distance_m: 30.0
+
+# --- Safety ---
+safety:
+  enable_kill_switch: true
+  max_tracking_loss_s: 0.5
+  nan_action_limit: 3               # Consecutive NaN before kill
+  geofence_enabled: true
+  geofence_radius_m: 100.0
+  max_attitude_deg: 80.0            # Max tilt before safety trigger
