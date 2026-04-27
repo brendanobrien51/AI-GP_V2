@@ -114,8 +114,8 @@ class SafetyMonitor:
             self._trigger(f"Geofence violation: {horiz_dist:.1f}m > {self._geofence_r:.1f}m")
             return False
 
-        # Altitude check
-        alt = position[2]
+        # Altitude check — NED: z is negative above ground, convert to AGL
+        alt = -position[2]
         if alt < self._min_alt:
             self._trigger(f"Below minimum altitude: {alt:.2f}m")
             return False
@@ -133,7 +133,7 @@ class SafetyMonitor:
                 2 * (y * z - w * x),
                 1 - 2 * (x * x + y * y),
             ])
-            tilt = np.arccos(np.clip(abs(body_z_world[2]), 0, 1))
+            tilt = np.arccos(np.clip(body_z_world[2], -1, 1))
             if tilt > self._max_tilt_rad:
                 self._trigger(f"Excessive tilt: {np.degrees(tilt):.1f} deg")
                 return False
